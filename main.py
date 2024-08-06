@@ -1,9 +1,19 @@
 import json
+import os
 import tkinter as tk
 from tkinter import Tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import askdirectory
+
+from idlelib.tooltip import Hovertip
+
+from moviepy.audio.AudioClip import concatenate_audioclips
+from moviepy.audio.fx.all import audio_fadein
+from moviepy.audio.fx.all import audio_fadeout
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.video.VideoClip import ImageClip
+
 
 # Prompts the user to select a file and returns its path
 def select_file(image_input):
@@ -19,7 +29,8 @@ def select_folder(audio_input):
     audio_input.delete(0, tk.END)
     audio_input.insert(0, folder_path)
 
-# Saves the current settings
+
+# Saves the current settings and returns them
 def save_settings(root):
     # Creates a dictionary with all the current selected settings in the gui
     settings_dict = {
@@ -31,11 +42,10 @@ def save_settings(root):
         'fps': root.children.get('vidsets_frame').nametowidget('fps_input').get(),
         'fade_in_secs': root.children.get('audiosets_frame').nametowidget('audiofadein_input').get(),
         'fade_out_secs': root.children.get('audiosets_frame').nametowidget('audiofadeout_input').get(),
-        'per_file': root.children.get('audiosets_frame').nametowidget('perfile_input').state(),
         'max_hours': root.children.get('extrasets_frame').nametowidget('hours_input').get(),
         'max_mins': root.children.get('extrasets_frame').nametowidget('mins_input').get(),
         'max_secs': root.children.get('extrasets_frame').nametowidget('secs_input').get(),
-        'threads': root.children.get('extrasets_frame').nametowidget('threads_input').get()
+        'file_name': root.children.get('export_frame').nametowidget('export_input').get()
     }
 
     # Opens a file and writes the dictionary into it
@@ -43,6 +53,7 @@ def save_settings(root):
         json.dump(settings_dict, file)
 
     print("Settings saved successfully.")
+    return settings_dict
 
 # Loads the settings
 def load_settings():
@@ -60,17 +71,89 @@ def load_settings():
         return
 
 
+def get_audio_clips(settings):
+    audio_files = os.listdir(settings.get('audio_folder'))
+    audio_clips = []
+    total_duration = 0
+    for audio in audio_files:
+        audio_clip = AudioFileClip(settings.get('audio_folder') + '/' + audio)
+        total_duration += audio_clip.duration
+
+        if settings.get('fade_in_secs').isdigit():
+            audio_clip = audio_clip.fx(audio_fadein, int(settings.get('fade_in_secs')))
+
+        if settings.get('fade_out_secs').isdigit():
+            audio_clip = audio_clip.fx(audio_fadeout, int(settings.get('fade_out_secs')))
+
+        audio_clips.append(audio_clip)
+
+    mixxed_audio = concatenate_audioclips(audio_clips)
+
+    return mixxed_audio, round(total_duration)
+
+
+
 # Exports the video
 def export_video(root):
-    save_settings(root)
-    return
+    settings = save_settings(root)
+
+    max_duration = 0
+    if settings.get('max_hours').isdigit():
+        max_duration += int(settings.get('max_hours'))*60*60
+    else:
+        print('Hours empty or invalid')
+
+    if settings.get('max_mins').isdigit():
+        max_duration += int(settings.get('max_mins'))*60
+    else:
+        print('Mins empty or invalid')
+
+    if settings.get('max_secs').isdigit():
+        max_duration += int(settings.get('max_secs'))
+    else:
+        print('Secs empty or invalid')
+
+    mixxed_audio, total_duration = get_audio_clips(settings)
+
+    final_clips = []
+    try:
+        image_clip = ImageClip(settings.get('image_file'))
+
+        mixxed_clip = image_clip.set_audio(mixxed_audio).set_duration(total_duration)
+
+        if max_duration > 0:
+            starting_point = 0
+            while total_duration > max_duration:
+                final_clips.append(mixxed_clip.subclip(starting_point, starting_point + max_duration))
+                starting_point += max_duration - 1
+                total_duration -= max_duration
+
+            final_clips.append(mixxed_clip.subclip(starting_point, starting_point + total_duration))
+        else:
+            final_clips.append(mixxed_clip)
+
+
+    except ValueError:
+        print('Problem with the image path')
+        return
+
+    try:
+        clip_number = 1
+        for final_clip in final_clips:
+            final_clip.write_videofile(settings.get('save_folder') + '/' + settings.get('file_name') + str(clip_number) + '.mp4', codec='libx264',
+                                       audio_bitrate='3000k', fps=int(settings.get('fps')))
+            clip_number += 1
+    except ValueError:
+        print('Problem with the save path')
+        return
+
 
 # Creates a frame for the image input area
 def create_image_frame(root, settings):
     image_frame = tk.Frame(root, name="image_frame")
     image_frame.pack(pady=10)
 
-    image_label = tk.Label(image_frame, text="Select your image")
+    image_label = tk.Label(image_frame, text="Image File")
     image_label.pack(side=tk.TOP, anchor='w')
 
     image_input = tk.Entry(image_frame, width=50, name="image_input")
@@ -85,7 +168,7 @@ def create_audio_frame(root, settings):
     audio_frame = tk.Frame(root, name="audio_frame")
     audio_frame.pack(pady=10)
 
-    audio_label = tk.Label(audio_frame, text="Select your audio folder")
+    audio_label = tk.Label(audio_frame, text="Audio Folder")
     audio_label.pack(side=tk.TOP, anchor='w')
 
     audio_input = tk.Entry(audio_frame, width=50, name="audio_input")
@@ -100,7 +183,7 @@ def create_save_frame(root, settings):
     save_frame = tk.Frame(root, name="save_frame")
     save_frame.pack(pady=10)
 
-    save_label = tk.Label(save_frame, text="Select your save folder")
+    save_label = tk.Label(save_frame, text="Save Folder")
     save_label.pack(side=tk.TOP, anchor='w')
 
     save_input = tk.Entry(save_frame, width=50, name="save_input")
@@ -113,7 +196,7 @@ def create_save_frame(root, settings):
 # Creates a frame for the video settings area
 def create_vidsets_frame(root, settings):
     vidsets_frame = tk.Frame(root, name="vidsets_frame")
-    vidsets_frame.pack(pady=5)
+    vidsets_frame.pack(pady=10)
 
     vidsets_label = tk.Label(vidsets_frame, text="Video Settings")
     vidsets_label.pack(side=tk.TOP, anchor='w', pady=10)
@@ -142,7 +225,7 @@ def create_vidsets_frame(root, settings):
 # Creates a frame for the audio settings area
 def create_audiosets_frame(root, settings):
     audiosets_frame = tk.Frame(root, name="audiosets_frame")
-    audiosets_frame.pack(pady=5)
+    audiosets_frame.pack(pady=10)
 
     audiosets_label = tk.Label(audiosets_frame, text="Audio Settings")
     audiosets_label.pack(side=tk.TOP, anchor='w', pady=10)
@@ -161,57 +244,49 @@ def create_audiosets_frame(root, settings):
     audiofadeout_input.insert(0, settings.get('fade_out_secs'))
     audiofadeout_input.pack(side=tk.LEFT, padx=5)
 
-    perfile_label = tk.Label(audiosets_frame, text="Per File")
-    perfile_label.pack(side=tk.LEFT, anchor='w')
-
-    perfile_input = ttk.Checkbutton(audiosets_frame, name="perfile_input")
-    perfile_input.state(['!alternate'])
-    perfile_input.state(settings.get('per_file'))
-    perfile_input.pack(side=tk.LEFT, padx=1)
-
 # Creates a frame for the extra settings area
 def create_extrasets_frame(root, settings):
     extrasets_frame = tk.Frame(root, name="extrasets_frame")
-    extrasets_frame.pack(pady=5)
+    extrasets_frame.pack(pady=10)
 
     extrasets_label = tk.Label(extrasets_frame, text="Extra Settings")
     extrasets_label.pack(side=tk.TOP, anchor='w', pady=10)
 
-    max_dur_label = tk.Label(extrasets_frame, text="Max Duration Part")
-    max_dur_label.pack(side=tk.LEFT, anchor='w')
+    max_dur_label = tk.Label(extrasets_frame, text="Max Duration: ")
+    max_dur_label.pack(side=tk.LEFT, anchor='w', padx=3)
 
-    hours_label = tk.Label(extrasets_frame, text="H")
+    hours_label = tk.Label(extrasets_frame, text="Hrs")
     hours_label.pack(side=tk.LEFT, anchor='w')
 
     hours_input = tk.Entry(extrasets_frame, width=4, justify="center", name="hours_input")
     hours_input.insert(0, settings.get('max_hours'))
-    hours_input.pack(side=tk.LEFT, padx=5)
+    hours_input.pack(side=tk.LEFT, padx=1)
 
-    mins_label = tk.Label(extrasets_frame, text="M")
+    mins_label = tk.Label(extrasets_frame, text="Mins")
     mins_label.pack(side=tk.LEFT, anchor='w')
 
     mins_input = tk.Entry(extrasets_frame, width=4, justify="center", name="mins_input")
     mins_input.insert(0, settings.get('max_mins'))
-    mins_input.pack(side=tk.LEFT, padx=5)
+    mins_input.pack(side=tk.LEFT, padx=1)
 
-    secs_label = tk.Label(extrasets_frame, text="S")
+    secs_label = tk.Label(extrasets_frame, text="Secs")
     secs_label.pack(side=tk.LEFT, anchor='w')
 
     secs_input = tk.Entry(extrasets_frame, width=4, justify="center", name="secs_input")
     secs_input.insert(0, settings.get('max_secs'))
-    secs_input.pack(side=tk.LEFT, padx=5)
-
-    threads_label = tk.Label(extrasets_frame, text="Threads")
-    threads_label.pack(side=tk.LEFT, anchor='w')
-
-    threads_input = tk.Entry(extrasets_frame, width=4, justify="center", name="threads_input")
-    threads_input.insert(0, settings.get('threads'))
-    threads_input.pack(side=tk.LEFT, padx=5)
+    secs_input.pack(side=tk.LEFT, padx=1)
 
 # Creates a frame for the extra settings area
 def create_export_frame(root, settings):
     export_frame = tk.Frame(root, name="export_frame")
-    export_frame.pack(pady=5)
+    export_frame.pack(pady=10)
+
+    export_label = tk.Label(export_frame, text="File Name")
+    export_label.pack(side=tk.TOP, anchor='w')
+
+    export_input = tk.Entry(export_frame, width=50, name="export_input")
+    export_input.insert(0, settings.get('file_name'))
+    export_input.pack(side=tk.LEFT, padx=5)
 
     export_button = tk.Button(export_frame, text="Export", command=lambda: export_video(root))
     export_button.pack(side=tk.RIGHT, padx=5)
@@ -245,3 +320,10 @@ def run_gui():
 
 if __name__ == "__main__":
     run_gui()
+
+
+
+# TODO: Audio normalizing
+# TODO: Tooltips
+# TODO: Save file name
+# TODO: Codecs and bitrates

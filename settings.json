@@ -1,1 +1,14 @@
-{"image_file": "", "audio_folder": "", "save_folder": "", "width": "", "height": "", "fps": "", "fade_in_secs": "", "fade_out_secs": "", "per_file": [], "max_hours": "", "max_mins": "", "max_secs": "", "threads": ""}
+{
+  "audio_folder": "",
+  "fade_in_secs": "",
+  "fade_out_secs": "",
+  "file_name": "",
+  "fps": "",
+  "height": "",
+  "image_file": "",
+  "max_hours": "",
+  "max_mins": "",
+  "max_secs": "",
+  "save_folder": "",
+  "width": ""
+}

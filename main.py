@@ -1,5 +1,10 @@
 import json
 import os
+
+from PIL import Image
+
+from pathvalidate import is_valid_filename
+
 import tkinter as tk
 from tkinter import Tk
 from tkinter import ttk
@@ -28,6 +33,104 @@ def select_folder(audio_input):
     folder_path = askdirectory()
     audio_input.delete(0, tk.END)
     audio_input.insert(0, folder_path)
+
+# Checks the validity of the user's inputs
+def check_settings(root):
+    error_msg = ''
+
+    # Checks image file path input
+    try:
+        with Image.open(root.nametowidget("image_frame").nametowidget('image_input').get()) as img:
+            img.verify()
+            print('Image file good')
+    except (IOError, SyntaxError):
+        error_msg += 'Invalid image file\n'
+
+    if os.path.isdir(root.children.get('audio_frame').nametowidget('audio_input').get()):
+        print('Audio folder good')
+    else:
+        error_msg += 'Invalid audio folder\n'
+
+    if os.path.isdir(root.children.get('save_frame').nametowidget('save_input').get()):
+        print('Save folder good')
+    else:
+        error_msg += 'Invalid save folder\n'
+
+
+
+    width = root.children.get('vidsets_frame').nametowidget('width_input').get()
+    height = root.children.get('vidsets_frame').nametowidget('height_input').get()
+    if width == '' and height == '':
+        print('Resolution good')
+    elif width != '' and height != '' and width.isdigit() and height.isdigit() and int(width) > 0 and int(height) > 0:
+        print('Resolution good')
+    else:
+        error_msg += 'Invalid resolution\n'
+
+
+
+    fps = root.children.get('vidsets_frame').nametowidget('fps_input').get()
+    if fps != '' and fps.isdigit() and int(fps) > 0:
+        print('FPS good')
+    else:
+        error_msg += 'Invalid FPS\n'
+
+
+    fade_in = root.children.get('audiosets_frame').nametowidget('audiofadein_input').get()
+    if fade_in == '':
+        print('Fade-In good')
+    elif fade_in.isdigit() and int(fade_in) > 0:
+        print('Fade-In good')
+    else:
+        error_msg += 'Invalid fade-in seconds\n'
+
+    fade_out = root.children.get('audiosets_frame').nametowidget('audiofadeout_input').get()
+    if fade_out == '':
+        print('Fade-In good')
+    elif fade_out.isdigit() and int(fade_out) > 0:
+        print('Fade-In good')
+    else:
+        error_msg += 'Invalid fade-out seconds\n'
+
+
+    hours = root.children.get('extrasets_frame').nametowidget('hours_input').get()
+    if hours == '':
+        print('Hours good')
+    elif hours.isdigit() and int(hours) > 0:
+        print('Hours good')
+    else:
+        error_msg += 'Invalid hours\n'
+
+
+    mins = root.children.get('extrasets_frame').nametowidget('mins_input').get()
+    if mins == '':
+        print('Mins good')
+    elif mins.isdigit() and int(mins) > 0:
+        print('Mins good')
+    else:
+        error_msg += 'Invalid mins\n'
+
+
+    secs = root.children.get('extrasets_frame').nametowidget('secs_input').get()
+    if secs == '':
+        print('Secs good')
+    elif secs.isdigit() and int(secs) > 0:
+        print('Secs good')
+    else:
+        error_msg += 'Invalid secs\n'
+
+
+    if is_valid_filename(root.children.get('export_frame').nametowidget('export_input').get()):
+        print('Save file good')
+    else:
+        error_msg += 'Invalid save file name\n'
+
+
+    if error_msg != '':
+        tk.messagebox.showerror(title='Invalid Settings', message=error_msg)
+        return False
+    else:
+        return True
 
 
 # Saves the current settings and returns them
@@ -95,58 +198,67 @@ def get_audio_clips(settings):
 
 # Exports the video
 def export_video(root):
-    settings = save_settings(root)
+    if check_settings(root):
+        settings = save_settings(root)
 
-    max_duration = 0
-    if settings.get('max_hours').isdigit():
-        max_duration += int(settings.get('max_hours'))*60*60
-    else:
-        print('Hours empty or invalid')
-
-    if settings.get('max_mins').isdigit():
-        max_duration += int(settings.get('max_mins'))*60
-    else:
-        print('Mins empty or invalid')
-
-    if settings.get('max_secs').isdigit():
-        max_duration += int(settings.get('max_secs'))
-    else:
-        print('Secs empty or invalid')
-
-    mixxed_audio, total_duration = get_audio_clips(settings)
-
-    final_clips = []
-    try:
-        image_clip = ImageClip(settings.get('image_file'))
-
-        mixxed_clip = image_clip.set_audio(mixxed_audio).set_duration(total_duration)
-
-        if max_duration > 0:
-            starting_point = 0
-            while total_duration > max_duration:
-                final_clips.append(mixxed_clip.subclip(starting_point, starting_point + max_duration))
-                starting_point += max_duration - 1
-                total_duration -= max_duration
-
-            final_clips.append(mixxed_clip.subclip(starting_point, starting_point + total_duration))
+        max_duration = 0
+        if settings.get('max_hours').isdigit():
+            max_duration += int(settings.get('max_hours'))*60*60
         else:
-            final_clips.append(mixxed_clip)
+            print('Hours empty or invalid')
+
+        if settings.get('max_mins').isdigit():
+            max_duration += int(settings.get('max_mins'))*60
+        else:
+            print('Mins empty or invalid')
+
+        if settings.get('max_secs').isdigit():
+            max_duration += int(settings.get('max_secs'))
+        else:
+            print('Secs empty or invalid')
+
+        mixxed_audio, total_duration = get_audio_clips(settings)
+
+        final_clips = []
+        try:
+            image_clip = ImageClip(settings.get('image_file'))
+
+            mixxed_clip = image_clip.set_audio(mixxed_audio).set_duration(total_duration)
+
+            if max_duration > 0:
+                starting_point = 0
+                while total_duration > max_duration:
+                    final_clips.append(mixxed_clip.subclip(starting_point, starting_point + max_duration))
+                    starting_point += max_duration - 1
+                    total_duration -= max_duration
+
+                final_clips.append(mixxed_clip.subclip(starting_point, starting_point + total_duration))
+            else:
+                final_clips.append(mixxed_clip)
+
+        except ValueError:
+            print('Problem with the image path')
+            return
 
 
-    except ValueError:
-        print('Problem with the image path')
-        return
 
-    try:
-        clip_number = 1
-        for final_clip in final_clips:
-            final_clip.write_videofile(settings.get('save_folder') + '/' + settings.get('file_name') + str(clip_number) + '.mp4', codec='libx264',
-                                       audio_bitrate='3000k', fps=int(settings.get('fps')))
-            clip_number += 1
-    except ValueError:
-        print('Problem with the save path')
-        return
+        try:
+            if len(final_clips) != 1:
+                clip_number = 1
+                for final_clip in final_clips:
+                    save_file_name = settings.get('save_folder') + '/' + settings.get('file_name') + str(clip_number) + '.mp4'
+                    final_clip.write_videofile(save_file_name, codec = 'libx264', audio_bitrate = '3000k', fps = int(settings.get('fps')))
+                    clip_number += 1
+            else:
+                save_file_name = settings.get('save_folder') + '/' + settings.get('file_name') + '.mp4'
 
+                final_clips[0].write_videofile(save_file_name, codec='libx264', audio_bitrate='3000k', fps=int(settings.get('fps')))
+
+        except ValueError:
+            print('Problem with the save path')
+            return
+    else:
+        return False
 
 # Creates a frame for the image input area
 def create_image_frame(root, settings):
@@ -327,3 +439,4 @@ if __name__ == "__main__":
 # TODO: Tooltips
 # TODO: Save file name
 # TODO: Codecs and bitrates
+# TODO: Check audio files in folder

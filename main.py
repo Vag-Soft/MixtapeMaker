@@ -7,7 +7,6 @@ from pathvalidate import is_valid_filename
 
 import tkinter as tk
 from tkinter import Tk
-from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import askdirectory
 
@@ -300,6 +299,8 @@ def export_video(root):
 def create_image_frame(root, settings):
     image_frame = tk.Frame(root, name="image_frame")
     image_frame.pack(pady=10)
+    # Tooltip for image input
+    Hovertip(image_frame, "Select the image you want to be displayed in the video")
 
     image_label = tk.Label(image_frame, text="Image File")
     image_label.pack(side=tk.TOP, anchor='w')
@@ -315,6 +316,8 @@ def create_image_frame(root, settings):
 def create_audio_frame(root, settings):
     audio_frame = tk.Frame(root, name="audio_frame")
     audio_frame.pack(pady=10)
+    # Tooltip for audio folder input
+    Hovertip(audio_frame, "Select the folder that contains all the audio you want to be included in the video")
 
     audio_label = tk.Label(audio_frame, text="Audio Folder")
     audio_label.pack(side=tk.TOP, anchor='w')
@@ -330,6 +333,8 @@ def create_audio_frame(root, settings):
 def create_save_frame(root, settings):
     save_frame = tk.Frame(root, name="save_frame")
     save_frame.pack(pady=10)
+    # Tooltip for save folder input
+    Hovertip(save_frame, "Select the folder where the exported video should be saved")
 
     save_label = tk.Label(save_frame, text="Save Folder")
     save_label.pack(side=tk.TOP, anchor='w')
@@ -351,6 +356,8 @@ def create_vidsets_frame(root, settings):
 
     width_label = tk.Label(vidsets_frame, text="Width")
     width_label.pack(side=tk.LEFT, anchor='w')
+    # Tooltip for width input
+    Hovertip(width_label,"Type in the width resolution you want your video to be in\nIt must be a positive integer\nIf you leave it empty, then the height must be empty too\nIf you don't, then the height cant be empty either")
 
     width_input = tk.Entry(vidsets_frame, width=5, justify="center", name="width_input")
     width_input.insert(0, settings.get('width'))
@@ -358,13 +365,18 @@ def create_vidsets_frame(root, settings):
 
     height_label = tk.Label(vidsets_frame, text="Height")
     height_label.pack(side=tk.LEFT, anchor='w')
+    # Tooltip for height input
+    Hovertip(height_label,"Type in the height resolution you want your video to be in\nIt must be a positive integer\nIf you leave it empty, then the height must be empty too\nIf you don't, then the height cant be empty either")
 
     height_input = tk.Entry(vidsets_frame, width=5, justify="center", name="height_input")
     height_input.insert(0, settings.get('height'))
     height_input.pack(side=tk.LEFT, padx=5)
 
+
     fps_label = tk.Label(vidsets_frame, text="FPS")
     fps_label.pack(side=tk.LEFT, anchor='w')
+    # Tooltip for height input
+    Hovertip(fps_label,"Type in the fps you want your video to have\nIt must be a positive integer and you can't leave it empty")
 
     fps_input = tk.Entry(vidsets_frame, width=4, justify="center", name="fps_input")
     fps_input.insert(0, settings.get('fps'))
@@ -380,6 +392,8 @@ def create_audiosets_frame(root, settings):
 
     audiofadein_label = tk.Label(audiosets_frame, text="Fade-In Secs")
     audiofadein_label.pack(side=tk.LEFT, anchor='w')
+    # Tooltip for height input
+    Hovertip(audiofadein_label,"Type in the number of seconds that each audio file should fade in for\nLeave it empty if you don't want any fade-in effect\nOtherwise it must be a positive integer")
 
     audiofadein_input = tk.Entry(audiosets_frame, width=4, justify="center", name="audiofadein_input")
     audiofadein_input.insert(0, settings.get('fade_in_secs'))
@@ -387,6 +401,8 @@ def create_audiosets_frame(root, settings):
 
     audiofadeout_label = tk.Label(audiosets_frame, text="Fade-Out Secs")
     audiofadeout_label.pack(side=tk.LEFT, anchor='w')
+    # Tooltip for height input
+    Hovertip(audiofadeout_label,"Type in the number of seconds that each audio file should fade out for\nLeave it empty if you don't want any fade-out effect\nOtherwise it must be a positive integer")
 
     audiofadeout_input = tk.Entry(audiosets_frame, width=4, justify="center", name="audiofadeout_input")
     audiofadeout_input.insert(0, settings.get('fade_out_secs'))
@@ -402,6 +418,8 @@ def create_extrasets_frame(root, settings):
 
     max_dur_label = tk.Label(extrasets_frame, text="Max Duration: ")
     max_dur_label.pack(side=tk.LEFT, anchor='w', padx=3)
+    # Tooltip for height input
+    Hovertip(max_dur_label,"Type in a max duration so that if all the audio files surpass it, the video will be cut down to seperate videos\nLeave empty or type in a positive integer")
 
     hours_label = tk.Label(extrasets_frame, text="Hrs")
     hours_label.pack(side=tk.LEFT, anchor='w')
@@ -431,6 +449,8 @@ def create_export_frame(root, settings):
 
     export_label = tk.Label(export_frame, text="File Name")
     export_label.pack(side=tk.TOP, anchor='w')
+    # Tooltip for save file name input
+    Hovertip(export_label, "Type in the name you want your video to be saved as\nIf the video is cut in parts, each video will have a part number at the end of its name\nBe careful! If there is another video with the same name in the save folder, it will be REPLACED")
 
     export_input = tk.Entry(export_frame, width=50, name="export_input")
     export_input.insert(0, settings.get('file_name'))

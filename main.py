@@ -16,6 +16,7 @@ from idlelib.tooltip import Hovertip
 from moviepy.audio.AudioClip import concatenate_audioclips
 from moviepy.audio.fx.all import audio_fadein
 from moviepy.audio.fx.all import audio_fadeout
+from moviepy.video.fx.all import resize
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.VideoClip import ImageClip
 
@@ -39,6 +40,7 @@ def select_folder(audio_input):
     audio_input.delete(0, tk.END)
     # Inserts the chosen path to the entry box
     audio_input.insert(0, folder_path)
+
 
 # Checks the validity of the user's inputs
 def check_settings(root):
@@ -139,7 +141,6 @@ def check_settings(root):
         return False
     else:
         return True
-
 
 # Saves the current settings and returns them
 def save_settings(root):
@@ -244,8 +245,17 @@ def export_video(root):
                 # Creates image clip with the given image
                 image_clip = ImageClip(settings.get('image_file'))
 
-                # Mixxes the image clip with the audio
-                mixxed_clip = image_clip.set_audio(mixxed_audio).set_duration(total_duration)
+                mixxed_clip = None
+
+                # Gets the resolution if one was given
+                if settings.get('width') != '' and settings.get('height') != '':
+                    resolution = (int(settings.get('width')), int(settings.get('height')))
+                    # Mixxes the image clip with the audio
+                    mixxed_clip = image_clip.set_audio(mixxed_audio).set_duration(total_duration).fx(resize, resolution)
+                else:
+                    # Mixxes the image clip with the audio
+                    mixxed_clip = image_clip.set_audio(mixxed_audio).set_duration(total_duration)
+
 
                 # Cuts the video into seperate parts if a max duration was given
                 if max_duration > 0:

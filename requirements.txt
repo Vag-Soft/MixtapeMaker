@@ -1,4 +1,4 @@
 moviepy~=1.0.3
 
-pillow~=10.4.0
+pillow~=9.5.0
 pathvalidate~=3.2.0

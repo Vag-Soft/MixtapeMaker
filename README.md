@@ -1,7 +1,6 @@
 # MixtapeMaker
 
-![image](https://github.com/user-attachments/assets/e4e71e59-3db0-4183-9d50-43cbfa4124b7)
-
+ ![image](https://github.com/user-attachments/assets/e4e71e59-3db0-4183-9d50-43cbfa4124b7)
 
 MixtapeMaker is a simple Python application that allows you to create video mixtapes by combining images and audio files. 
 The application has a GUI where users can specify various settings, such as video resolution, frames per second (FPS), audio fade-in/out duration, and more. 
@@ -31,3 +30,6 @@ The final output is a video file that includes the selected image and audio file
 You can install the required packages by running the following pip command:
 
 `pip install -r requirements.txt`
+
+## Contributing
+Feel free to submit issues or pull requests for any bugs or feature requests.

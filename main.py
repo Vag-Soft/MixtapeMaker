@@ -153,6 +153,7 @@ def save_settings(root):
         'fps': root.children.get('vidsets_frame').nametowidget('fps_input').get(),
         'fade_in_secs': root.children.get('audiosets_frame').nametowidget('audiofadein_input').get(),
         'fade_out_secs': root.children.get('audiosets_frame').nametowidget('audiofadeout_input').get(),
+        'audio_bitrate': default_selection.get(),
         'max_hours': root.children.get('extrasets_frame').nametowidget('hours_input').get(),
         'max_mins': root.children.get('extrasets_frame').nametowidget('mins_input').get(),
         'max_secs': root.children.get('extrasets_frame').nametowidget('secs_input').get(),
@@ -285,7 +286,7 @@ def export_video(root):
                 else:
                     save_file_name = settings.get('save_folder') + '/' + settings.get('file_name') + '.mp4'
 
-                    final_clips[0].write_videofile(save_file_name, codec='libx264', audio_bitrate='3000k', fps=int(settings.get('fps')))
+                    final_clips[0].write_videofile(save_file_name, codec='libx264', audio_bitrate=settings.get('audio_bitrate'), fps=int(settings.get('fps')))
 
             except ValueError:
                 print('Problem with the save path')
@@ -354,7 +355,7 @@ def create_vidsets_frame(root, settings):
     vidsets_label = tk.Label(vidsets_frame, text="Video Settings")
     vidsets_label.pack(side=tk.TOP, anchor='w', pady=10)
 
-    width_label = tk.Label(vidsets_frame, text="Width")
+    width_label = tk.Label(vidsets_frame, text="Width:")
     width_label.pack(side=tk.LEFT, anchor='w')
     # Tooltip for width input
     Hovertip(width_label,"Type in the width resolution you want your video to be in\nIt must be a positive integer\nIf you leave it empty, then the height must be empty too\nIf you don't, then the height cant be empty either")
@@ -363,7 +364,7 @@ def create_vidsets_frame(root, settings):
     width_input.insert(0, settings.get('width'))
     width_input.pack(side=tk.LEFT, padx=5)
 
-    height_label = tk.Label(vidsets_frame, text="Height")
+    height_label = tk.Label(vidsets_frame, text="Height:")
     height_label.pack(side=tk.LEFT, anchor='w')
     # Tooltip for height input
     Hovertip(height_label,"Type in the height resolution you want your video to be in\nIt must be a positive integer\nIf you leave it empty, then the height must be empty too\nIf you don't, then the height cant be empty either")
@@ -373,7 +374,7 @@ def create_vidsets_frame(root, settings):
     height_input.pack(side=tk.LEFT, padx=5)
 
 
-    fps_label = tk.Label(vidsets_frame, text="FPS")
+    fps_label = tk.Label(vidsets_frame, text="FPS:")
     fps_label.pack(side=tk.LEFT, anchor='w')
     # Tooltip for height input
     Hovertip(fps_label,"Type in the fps you want your video to have\nIt must be a positive integer and you can't leave it empty")
@@ -390,7 +391,7 @@ def create_audiosets_frame(root, settings):
     audiosets_label = tk.Label(audiosets_frame, text="Audio Settings")
     audiosets_label.pack(side=tk.TOP, anchor='w', pady=10)
 
-    audiofadein_label = tk.Label(audiosets_frame, text="Fade-In Secs")
+    audiofadein_label = tk.Label(audiosets_frame, text="Fade-In:")
     audiofadein_label.pack(side=tk.LEFT, anchor='w')
     # Tooltip for height input
     Hovertip(audiofadein_label,"Type in the number of seconds that each audio file should fade in for\nLeave it empty if you don't want any fade-in effect\nOtherwise it must be a positive integer")
@@ -399,7 +400,7 @@ def create_audiosets_frame(root, settings):
     audiofadein_input.insert(0, settings.get('fade_in_secs'))
     audiofadein_input.pack(side=tk.LEFT, padx=5)
 
-    audiofadeout_label = tk.Label(audiosets_frame, text="Fade-Out Secs")
+    audiofadeout_label = tk.Label(audiosets_frame, text="Fade-Out:")
     audiofadeout_label.pack(side=tk.LEFT, anchor='w')
     # Tooltip for height input
     Hovertip(audiofadeout_label,"Type in the number of seconds that each audio file should fade out for\nLeave it empty if you don't want any fade-out effect\nOtherwise it must be a positive integer")
@@ -407,6 +408,27 @@ def create_audiosets_frame(root, settings):
     audiofadeout_input = tk.Entry(audiosets_frame, width=4, justify="center", name="audiofadeout_input")
     audiofadeout_input.insert(0, settings.get('fade_out_secs'))
     audiofadeout_input.pack(side=tk.LEFT, padx=5)
+
+
+    bitrate_label = tk.Label(audiosets_frame, text="Bitrate:")
+    bitrate_label.pack(side=tk.LEFT, anchor='w', padx=3)
+    # Tooltip for height input
+    Hovertip(bitrate_label,"Select the bitrate for the audio\nHigher means better quality")
+
+
+    bitrate_options = [
+        "50k",
+        "500k",
+        "3000k"
+    ]
+    global default_selection
+    # datatype of menu text
+    default_selection = tk.StringVar()
+    # initial menu text
+    default_selection.set(settings.get('audio_bitrate'))
+
+    drop = tk.OptionMenu(audiosets_frame, default_selection, *bitrate_options)
+    drop.pack(side=tk.LEFT)
 
 # Creates a frame for the extra settings area
 def create_extrasets_frame(root, settings):
@@ -488,9 +510,3 @@ def run_gui():
 
 if __name__ == "__main__":
     run_gui()
-
-
-
-# TODO: Audio normalizing
-# TODO: Tooltips
-# TODO: Codecs and bitrates

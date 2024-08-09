@@ -1,4 +1,5 @@
 {
+  "audio_bitrate": "3000k",
   "audio_folder": "",
   "fade_in_secs": "",
   "fade_out_secs": "",

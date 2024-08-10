@@ -64,8 +64,9 @@ You can install the required packages by running the following pip command:
 - **Max Duration**: Set a max duration so that the final video is cut into seperate videos of that duration
   - Leave empty or 0 for no max duration, or type in a positive integer
 - **File Name**: Provide a name for the exported video to be called
-  - If there are multiple videos due to the max duration, a clip number will be added at the end of the name
   - WARNING! If there is another video with the same name in the save folder, it will be REPLACED
+  - The name must abide by Windows' file name rules
+  - If there are multiple videos due to the max duration, a clip number will be added at the end of the name
 
 ## Contributing
 Feel free to submit issues or pull requests for any bugs or feature requests.

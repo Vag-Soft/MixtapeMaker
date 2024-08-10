@@ -25,12 +25,12 @@ The final output is a video file that includes the selected image and audio file
 ### Executable
 Download and extract the latest release, then run the executable.
 
+(If you encounter permission errors, run as administrator)
+
 (Windows may prompt a warning saying the app may be dangerous, click "Run anyway" to continue)
 
 ### IDE or CLI
 Clone this repository, install the following requirements and run.
-
-(If you encounter permission errors, run as administrator)
 
 (I'm suggesting you install the requirements in a virtual environment)
 
